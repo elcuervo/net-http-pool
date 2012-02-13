@@ -8,4 +8,10 @@ test "establishes a persistent connection" do
 
   res = pool.get("/marco")
   assert_equal 'polo', res.body
+
+  res = pool.post("/post", 'test', {'X-Fancy-Header' => 'Sometimes'})
+  assert_equal 'the post', res.body
+
+  res = pool.put("/put")
+  assert_equal 'the put', res.body
 end

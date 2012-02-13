@@ -16,6 +16,20 @@ class Net::HTTP::Pool
     end
   end
 
+  def get(path, headers = {})
+    request(path, Net::HTTP::Get, nil, headers)
+  end
+
+  def post(path, body = nil, headers = {})
+    request(path, Net::HTTP::Post, body, headers)
+  end
+
+  def put(path, body = nil, headers = {})
+    request(path, Net::HTTP::Put, body, headers)
+  end
+
+  private
+
   def with_connection(&block)
     @connection = if !!@connection && @connection.active?
                     @connection
@@ -26,7 +40,10 @@ class Net::HTTP::Pool
     yield(@connection) if block_given?
   end
 
-  def get(path)
-    with_connection { |connection| connection.get(path) }
+  def request(path, type, body = nil, headers = {})
+    with_connection do |connection|
+      connection.request type.new(path, headers), body
+    end
   end
+
 end
