@@ -6,7 +6,7 @@ class Net::HTTP::Pool
 
   def initialize(url, options = {})
     @url = URI(url)
-    @pool = ConnectionPool.new(size: 5) do
+    @pool = ConnectionPool.new(options) do
       persistent = Net::HTTP::Persistent.new(options.fetch(:name, nil))
       if options.fetch(:debug, false)
         persistent.debug_output = options.fetch(:logger, $stderr)
@@ -28,22 +28,23 @@ class Net::HTTP::Pool
     request(path, Net::HTTP::Put, body, headers)
   end
 
-  private
-
-  def with_connection(&block)
-    @connection = if !!@connection && @connection.active?
-                    @connection
-                  else
-                    @pool.with { |net| net.connection_for(@url) }
-                  end
-
-    yield(@connection) if block_given?
+  def delete(path, body = nil, headers = {})
+    request(path, Net::HTTP::Delete, body, headers)
   end
 
-  def request(path, type, body = nil, headers = {})
-    with_connection do |connection|
-      connection.request type.new(path, headers), body
-    end
+  def options(path, body = nil, headers = {})
+    request(path, Net::HTTP::Options, body, headers)
+  end
+
+  private
+
+  def request(path, type = Net::HTTP::Get, body = nil, headers = {})
+    req = type.new(path)
+    req.body = body if body
+    req['Content-Length'] = body && body.length || 0
+    headers.each { |key, value| req.add_field key, value }
+
+    @pool.with { |persistent| persistent.request @url, req }
   end
 
 end
