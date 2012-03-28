@@ -1,6 +1,7 @@
 require 'connection_pool'
 require 'net/http/persistent'
 
+# Public
 class Net::HTTP::Pool
   attr_reader :url
 
@@ -8,9 +9,10 @@ class Net::HTTP::Pool
     @url = URI(url)
     @pool = ConnectionPool.new(options) do
       persistent = Net::HTTP::Persistent.new(options.fetch(:name, nil))
+      persistent.idle_timeout = nil
       if options.fetch(:debug, false)
         persistent.debug_output = options.fetch(:logger, $stderr)
-        persistent.debug_output.write "New persistent connection to: %s\n" % url
+        persistent.debug_output.write "Persistent connection to: %s\n" % url
       end
       persistent
     end
@@ -40,6 +42,7 @@ class Net::HTTP::Pool
 
   def request(path, type = Net::HTTP::Get, body = nil, headers = {})
     req = type.new(path)
+    body = body.to_json if body.is_a?(Hash)
     req.body = body if body
     req['Content-Length'] = body && body.length || 0
     headers.each { |key, value| req.add_field key, value }

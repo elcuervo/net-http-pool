@@ -14,16 +14,16 @@ mock_server {
   end
 
   post '/post' do
-    'the post'
+    params[:test] ? 'this is a test' : 'the post'
   end
 
   put '/put' do
-    'the put'
+    params[:run] || 'the put'
   end
 }
 
 test "establishes a persistent connection" do
-  pool = Net::HTTP::Pool.new("http://localhost:4000/", debug: true)
+  pool = Net::HTTP::Pool.new("http://localhost:4000/")
   res = pool.get("/")
 
   assert_equal "200", res.code
@@ -34,13 +34,13 @@ test "establishes a persistent connection" do
   assert_equal "200", res.code
   assert_equal 'polo', res.body
 
-  res = pool.post("/post", 'test', {'X-Fancy-Header' => 'Sometimes'})
+  res = pool.post("/post", 'test=yes', {'X-Fancy-Header' => 'Sometimes'})
 
   assert_equal "200", res.code
-  assert_equal 'the post', res.body
+  assert_equal 'this is a test', res.body
 
-  res = pool.put("/put")
+  res = pool.put("/put", 'run=fast')
 
   assert_equal "200", res.code
-  assert_equal 'the put', res.body
+  assert_equal 'fast', res.body
 end
