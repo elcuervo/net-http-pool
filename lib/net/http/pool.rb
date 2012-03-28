@@ -1,11 +1,20 @@
 require 'celluloid'
 require 'net/http/persistent'
 
+# Public: The Pool itself
+#
+# host - The string of the host.
 class Net::HTTP::Pool
   include Celluloid
 
+  # Private: Custom Error for a missing block in the call.
   class MissingBlock < StandardError; end
 
+  # Public: The Connection Pool.
+  #
+  # host    - The string of the host.
+  # options - The hash of options (default: {}).
+  #           :size - The integer size of the pool (default: 5)
   class Connections
     include Celluloid
 
