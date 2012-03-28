@@ -29,11 +29,17 @@ class Net::HTTP::Pool
       end
     end
 
+    # Private: Round robin one of the connections
+    #
+    # &block - The block to be called passing the current connection
     def round_robin(&block)
       @current_index = @current_index > @pool.size ? 0 : @current_index + 1
       yield @pool[@current_index] if block
     end
 
+    # Public: Helper to access the connection asynchronous
+    #
+    # &block - The block to be called passing the current connection
     def with(&block)
       round_robin! &block
     end
