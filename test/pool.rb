@@ -32,7 +32,7 @@ scope do
     @pool = Net::HTTP::Pool.new("http://localhost:4000/")
   end
 
-  test "establishes a persistent connection" do
+  test "check that the HTTP verbs do work" do
     @pool.get("/") do |res|
       assert_equal "200", res.code
       assert_equal 'What is up dog!', res.body
