@@ -20,27 +20,43 @@ mock_server {
   put '/put' do
     params[:run] || 'the put'
   end
+
+  get '/wait' do
+    sleep 5
+    "Finally!"
+  end
 }
 
-test "establishes a persistent connection" do
-  pool = Net::HTTP::Pool.new("http://localhost:4000/")
-  res = pool.get("/")
+scope do
+  setup do
+    @pool = Net::HTTP::Pool.new("http://localhost:4000/")
+  end
 
-  assert_equal "200", res.code
-  assert_equal 'What is up dog!', res.body
+  test "establishes a persistent connection" do
+    @pool.get("/") do |res|
+      assert_equal "200", res.code
+      assert_equal 'What is up dog!', res.body
+    end
 
-  res = pool.get("/marco")
+    @pool.get("/marco") do |res|
+      assert_equal "200", res.code
+      assert_equal 'polo', res.body
+    end
 
-  assert_equal "200", res.code
-  assert_equal 'polo', res.body
+    @pool.post("/post", 'test=yes', {'X-Fancy-Header' => 'Sometimes'}) do |res|
+      assert_equal "200", res.code
+      assert_equal 'this is a test', res.body
+    end
 
-  res = pool.post("/post", 'test=yes', {'X-Fancy-Header' => 'Sometimes'})
+    @pool.put("/put", 'run=fast') do |res|
+      assert_equal "200", res.code
+      assert_equal 'fast', res.body
+    end
+  end
 
-  assert_equal "200", res.code
-  assert_equal 'this is a test', res.body
-
-  res = pool.put("/put", 'run=fast')
-
-  assert_equal "200", res.code
-  assert_equal 'fast', res.body
+  test "do not block main thread when resource is slow" do
+    start = Time.now
+    5.times { @pool.get("/wait") {} }
+    assert Time.now - start < 20
+  end
 end

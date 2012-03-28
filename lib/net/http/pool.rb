@@ -1,54 +1,58 @@
-require 'connection_pool'
-require 'net/http/pipeline'
+require 'celluloid'
 require 'net/http/persistent'
 
-# Public
 class Net::HTTP::Pool
-  attr_reader :url
+  include Celluloid
 
-  def initialize(url, options = {})
-    @url = URI(url)
-    @pool = ConnectionPool.new(options) do
-      persistent = Net::HTTP::Persistent.new(options.fetch(:name, nil))
-      persistent.idle_timeout = nil
-      if options.fetch(:debug, false)
-        persistent.debug_output = options.fetch(:logger, $stderr)
-        persistent.debug_output.write "Persistent connection to: %s\n" % url
+  class MissingBlock < StandardError; end
+
+  class Connections
+    include Celluloid
+
+    attr_reader :pool
+
+    def initialize(host, amount = 5)
+      @current_index = 0
+      @pool = Array.new(amount) do
+        connection = Net::HTTP::Persistent.new(host)
+        connection.idle_timeout = nil
+        connection
       end
-      persistent
+    end
+
+    def round_robin(&block)
+      @current_index = @current_index > @pool.size ? 0 : @current_index + 1
+      yield @pool[@current_index] if block
+    end
+
+    def with(&block)
+      round_robin! &block
     end
   end
 
-  def get(path, headers = {})
-    request(path, Net::HTTP::Get, nil, headers)
+  def initialize(host)
+    @pool = Connections.new(host)
+    @uri = URI host
   end
 
-  def post(path, body = nil, headers = {})
-    request(path, Net::HTTP::Post, body, headers)
+  def get(path, headers = {}, &block)
+    request!(path, Net::HTTP::Get, nil, headers, &block)
   end
 
-  def put(path, body = nil, headers = {})
-    request(path, Net::HTTP::Put, body, headers)
+  def post(path, body = nil, headers, &block)
+    request!(path, Net::HTTP::Post, body, headers, &block)
   end
 
-  def delete(path, body = nil, headers = {})
-    request(path, Net::HTTP::Delete, body, headers)
+  def put(path, body = nil, headers, &block)
+    request!(path, Net::HTTP::Put, body, headers, &block)
   end
 
-  def options(path, body = nil, headers = {})
-    request(path, Net::HTTP::Options, body, headers)
+  def request(path, type, body = nil, headers = {}, &block)
+    raise MissingBlock, "You must pass a block" unless block
+    @pool.with do |connection|
+      request = type.new(path)
+      request.body = body if body
+      yield connection.request(@uri, request) if block
+    end
   end
-
-  private
-
-  def request(path, type = Net::HTTP::Get, body = nil, headers = {})
-    req = type.new(path)
-    body = body.to_json if body.is_a?(Hash)
-    req.body = body if body
-    req['Content-Length'] = body && body.length || 0
-    headers.each { |key, value| req.add_field key, value }
-
-    @pool.with { |persistent| persistent.request @url, req }
-  end
-
 end
