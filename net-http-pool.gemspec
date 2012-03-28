@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.test_files        = `git ls-files test`.split("\n")
 
   s.add_dependency("connection_pool", "~> 0.9.0")
+  s.add_dependency("net-http-pipeline", "~> 1.0")
   s.add_dependency("net-http-persistent", ">= 2.6")
 
   s.add_development_dependency("cutest", "~> 1.1.3")

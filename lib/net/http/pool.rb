@@ -1,4 +1,5 @@
 require 'connection_pool'
+require 'net/http/pipeline'
 require 'net/http/persistent'
 
 # Public
