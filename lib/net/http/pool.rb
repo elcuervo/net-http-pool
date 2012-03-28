@@ -11,9 +11,9 @@ class Net::HTTP::Pool
 
     attr_reader :pool
 
-    def initialize(host, amount = 5)
+    def initialize(host, options = {})
       @current_index = 0
-      @pool = Array.new(amount) do
+      @pool = Array.new(options.fetch(:size, 5)) do
         connection = Net::HTTP::Persistent.new(host)
         connection.idle_timeout = nil
         connection
@@ -52,6 +52,8 @@ class Net::HTTP::Pool
     @pool.with do |connection|
       request = type.new(path)
       request.body = body if body
+      headers.each { |key, value| request.add_field(key, value) }
+      request['Content-Length'] = body && body.length || 0
       yield connection.request(@uri, request) if block
     end
   end
