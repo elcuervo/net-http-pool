@@ -8,7 +8,11 @@ class Net::HTTP::Pool
   include Celluloid
 
   # Private: Custom Error for a missing block in the call.
-  class MissingBlock < StandardError; end
+  class MissingBlock < StandardError
+    def message
+      "You must pass a block"
+    end
+  end
 
   # Public: The Connection Pool.
   #
@@ -33,6 +37,7 @@ class Net::HTTP::Pool
     #
     # &block - The block to be called passing the current connection
     def round_robin(&block)
+      raise MissingBlock unless block
       @current_index = @current_index > @pool.size ? 0 : @current_index + 1
       yield @pool[@current_index] if block
     end
@@ -45,9 +50,9 @@ class Net::HTTP::Pool
     end
   end
 
-  def initialize(host)
-    @pool = Connections.new(host)
-    @uri = URI host
+  def initialize(host, options = {})
+    @pool = Connections.new(host, options)
+    @uri = URI(host)
   end
 
   def get(path, headers = {}, &block)
@@ -63,7 +68,7 @@ class Net::HTTP::Pool
   end
 
   def request(path, type, body = nil, headers = {}, &block)
-    raise MissingBlock, "You must pass a block" unless block
+    raise MissingBlock unless block
     @pool.with do |connection|
       request = type.new(path)
       request.body = body if body
