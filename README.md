@@ -1,5 +1,7 @@
 # Net::HTTP::Pool
 
+[![Build Status](https://secure.travis-ci.org/elcuervo/net-http-pool.png?branch=master)](http://travis-ci.org/elcuervo/net-http-pool)
+
 ![Pool](http://www.beijingboyce.com/wp-content/uploads/2008/03/pool-table.JPG)
 
 Act like a database pool but for HTTP.
