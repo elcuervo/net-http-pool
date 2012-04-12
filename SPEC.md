@@ -1,3 +1,4 @@
 # Pool of persistent connections
 
-Pool of connections to use with Spirit... for now
+Pool of HTTP connections. Works together with Net::HTTP.
+Works with aync calls using actors

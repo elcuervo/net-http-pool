@@ -12,6 +12,11 @@ verb block it's async.
 The target of the lib it's to provide DB-like pool to handle information
 exchange.
 
+## Motivation
+
+The main goal it's to provide a easy to use HTTP pool exploiting HTTP 1.1
+persistent connections in a non-blocking way.
+
 ## Example
 
 ```ruby
@@ -27,4 +32,5 @@ end
 
 ## Thanks to
 
-  * @foca and @dcadenas for code-review and corrections.
+  * [@foca](http://github.com/foca) and [@dcadenas](http://github.com/dcadenas)
+    for code-review and corrections.
