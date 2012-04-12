@@ -18,7 +18,9 @@ exchange.
 require 'net/http/pool'
 
 pool = Net::HTTP::Pool.new("http://elcuervo.co")
-pool.get("/humans.txt") do |response|
+request = Net::HTTP::Get.new("/humans.txt")
+
+pool.request(request) do |response|
   File.open('nevermore.txt', 'w') { |f| f << response.body } if response.code == "200"
 end
 ```
