@@ -59,12 +59,16 @@ class Net::HTTP::Pool
     request!(path, Net::HTTP::Get, nil, headers, &block)
   end
 
-  def post(path, body = nil, headers, &block)
+  def post(path, body = nil, headers = {}, &block)
     request!(path, Net::HTTP::Post, body, headers, &block)
   end
 
-  def put(path, body = nil, headers, &block)
+  def put(path, body = nil, headers = {}, &block)
     request!(path, Net::HTTP::Put, body, headers, &block)
+  end
+
+  def delete(path, headers = {}, &block)
+    request!(path, Net::HTTP::Delete, headers, &block)
   end
 
   def request(path, type, body = nil, headers = {}, &block)

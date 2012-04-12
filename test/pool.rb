@@ -25,6 +25,8 @@ mock_server {
     sleep 5
     "Finally!"
   end
+
+  delete('/delete') {}
 }
 
 scope do
@@ -51,6 +53,10 @@ scope do
     @pool.put("/put", 'run=fast') do |res|
       assert_equal "200", res.code
       assert_equal 'fast', res.body
+    end
+
+    @pool.delete("/delete") do |res|
+      assert_equal "200", res.code
     end
   end
 
