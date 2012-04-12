@@ -24,3 +24,7 @@ pool.request(request) do |response|
   File.open('nevermore.txt', 'w') { |f| f << response.body } if response.code == "200"
 end
 ```
+
+## Thanks to
+
+  * @foca and @dcadenas for code-review and corrections.
