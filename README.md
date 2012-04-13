@@ -6,7 +6,7 @@
 
 Act like a database pool but for HTTP.
 
-It will attenmpt to open (default: 5) persistent connections to a given server.
+It will attempt to open (default: 5) persistent connections to a given server.
 Then you can make your requests as you want and the pool get recycled.
 The implementation it's made throght actors (celluloid) so the behaviour in the
 verb block it's async.
